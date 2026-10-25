@@ -55,7 +55,7 @@ git --version
 ### 2. Clone the Repository
 
 ```bash
-git clone <YOUR_REPO_URL>
+git clone https://github.com/fhu0914/classification-logistic-regression.git
 cd classification-logistic-regression
 ```
 
