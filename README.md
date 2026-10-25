@@ -59,7 +59,6 @@ git clone https://github.com/fhu0914/classification-logistic-regression.git
 cd classification-logistic-regression
 ```
 
-> Replace `<YOUR_REPO_URL>` with the actual GitHub repository URL after the repository is created.
 
 ### 3. Create a Virtual Environment
 
