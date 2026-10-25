@@ -20,6 +20,8 @@ from sklearn.metrics import (
 ROOT = Path(__file__).resolve().parent
 REPORTS = ROOT / "reports"
 REPORTS.mkdir(exist_ok=True)
+pd.set_option("display.max_columns", None)
+pd.set_option("display.width", 200)
 data = load_breast_cancer()
 
 df = pd.DataFrame(data.data, columns=data.feature_names)

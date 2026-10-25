@@ -1,4 +1,4 @@
-# Logistic Regression from Scores to Decisions
+# Breast Mass Classification: Logistic Regression and Decision Thresholds
 
 ## Project Overview
 
@@ -91,15 +91,17 @@ git --version
 
 ### 1. Verify Python and Git
 
-Check that Python is installed:
+Windows PowerShell:
 
-```bash
+```powershell
 python --version
+git --version
 ```
 
-Check that Git is installed:
+macOS Terminal:
 
 ```bash
+python3 --version
 git --version
 ```
 

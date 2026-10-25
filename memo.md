@@ -11,7 +11,7 @@ Logistic regression converts a linear score into a probability using the sigmoid
 | C | -2.6 | 0.0691 | 0.50 | 0 |
 | D | 1.0 | 0.7311 | 0.50 | 1 |
 
-For Case A, \(z=-1.0+0.8(2.0)=0.6\). Applying the sigmoid gives \(p=1/(1+\exp(-0.6))=0.6457\). Because 0.6457 is greater than the 0.50 threshold, the predicted class is 1.
+For Case A, $z=-1.0+0.8(2.0)=0.6$. Applying the sigmoid gives $p=1/(1+\exp(-0.6))=0.6457$. Because 0.6457 is greater than the 0.50 threshold, the predicted class is 1.
 
 Cases A and B show that changing the threshold changes the class decision but not the probability. Case C shows that reversing the coefficient changes the direction of the relationship. In Case D, the coefficient is zero, so the input has no effect and the probability remains constant. These coefficients were manually specified, unlike the coefficients learned during training.
 
@@ -39,7 +39,7 @@ Minimizing binary cross-entropy is equivalent to minimizing negative log-likelih
 
 ## 4. Comparison with scikit-learn and Baseline
 
-The NumPy coefficients were almost identical to the scikit-learn coefficients. The mean absolute difference between their validation probabilities was approximately \(1.19 \times 10^{-10}\), supporting the correctness of the NumPy implementation.
+The NumPy coefficients were almost identical to the scikit-learn coefficients. The mean absolute difference between their validation probabilities was approximately $1.19 \times 10^{-10}$, supporting the correctness of the NumPy implementation.
 
 The `DummyClassifier` baseline predicted every validation case as benign at threshold 0.50. Its accuracy was about 0.623, but recall and F1 for malignant cases were both 0. Its confusion counts were TN = 71, FP = 0, FN = 43, and TP = 0. In plain language, it correctly labeled all 71 benign cases but missed all 43 malignant cases. Because it predicted no positive cases, `zero_division=0` reports precision as 0. This shows why accuracy alone can be misleading.
 
@@ -59,6 +59,6 @@ This model is an educational exercise, not a clinical decision tool. It uses onl
 
 I first verified feature selection, target coding, missing values, split sizes, class counts, class proportions, row coverage, and absence of overlap. I also confirmed that standardized training features had means near zero and standard deviations near one.
 
-Before full training, I tested the sigmoid function at \(z=0\) and confirmed that it returned 0.5. I encountered an environment issue because scikit-learn was not initially installed, so I installed the required package and reran the project.
+Before full training, I tested the sigmoid function at $z=0$ and confirmed that it returned 0.5. I encountered an environment issue because scikit-learn was not initially installed, so I installed the required package and reran the project.
 
 To validate the NumPy implementation, I compared its learned coefficients and validation probabilities with the scikit-learn reference model. Their extremely small differences provided evidence that the implementation and preprocessing pipeline were working correctly.
