@@ -69,6 +69,13 @@ print("\nClass proportions:")
 print("Train:", pd.Series(y_train).value_counts(normalize=True).sort_index())
 print("Validation:", pd.Series(y_val).value_counts(normalize=True).sort_index())
 print("Test:", pd.Series(y_test).value_counts(normalize=True).sort_index())
+print("\nClass counts by split:")
+print("Train:", pd.Series(y_train).value_counts().sort_index().to_dict())
+print("Validation:", pd.Series(y_val).value_counts().sort_index().to_dict())
+print("Test:", pd.Series(y_test).value_counts().sort_index().to_dict())
+
+all_split_indices = set(train_idx) | set(val_idx) | set(test_idx)
+print("All rows covered:", len(all_split_indices) == len(indices))
 scaler = StandardScaler()
 
 X_train_scaled = scaler.fit_transform(X_train)
@@ -320,3 +327,4 @@ assignment_results.to_csv(
 
 print("Saved assignment results to:",
       REPORTS / "assignment_results.csv")
+

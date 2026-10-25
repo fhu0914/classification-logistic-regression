@@ -2,7 +2,7 @@
 
 ## 1. Manual Logistic Regression Cases
 
-The first part of this project demonstrated how logistic regression converts a linear score into a probability and then converts that probability into a class using a threshold. The score is calculated as \(z=\beta_0+\beta_1x\), and the sigmoid function converts \(z\) into a probability.
+Logistic regression converts a linear score into a probability using the sigmoid function and then applies a threshold to assign a class.
 
 | Case | z | Probability | Threshold | Predicted Class |
 |---|---:|---:|---:|---:|
@@ -11,21 +11,23 @@ The first part of this project demonstrated how logistic regression converts a l
 | C | -2.6 | 0.0691 | 0.50 | 0 |
 | D | 1.0 | 0.7311 | 0.50 | 1 |
 
-Cases A and B show that changing the threshold changes the final classification but does not change the predicted probability. Case C shows that reversing the coefficient sign changes the direction of the relationship between the feature and the probability. In Case D, the feature coefficient is zero, so the probability is constant regardless of the input value. These coefficients were manually chosen for demonstration, unlike the coefficients learned during model training.
+For Case A, \(z=-1.0+0.8(2.0)=0.6\). Applying the sigmoid gives \(p=1/(1+\exp(-0.6))=0.6457\). Because 0.6457 is greater than the 0.50 threshold, the predicted class is 1.
+
+Cases A and B show that changing the threshold changes the class decision but not the probability. Case C shows that reversing the coefficient changes the direction of the relationship. In Case D, the coefficient is zero, so the input has no effect and the probability remains constant. These coefficients were manually specified, unlike the coefficients learned during training.
 
 ## 2. Data Preparation and Leakage Prevention
 
-I used the Wisconsin Diagnostic Breast Cancer dataset from scikit-learn. Following the project requirements, I used only two features: mean radius and mean texture. The original target coding was reversed so that 1 represents malignant and 0 represents benign. The dataset contained 569 observations, including 357 benign cases and 212 malignant cases, with no missing values in the selected features.
+I used the Wisconsin Diagnostic Breast Cancer dataset bundled with scikit-learn through `load_breast_cancer()`. According to `data.DESCR`, the measurements describe characteristics of cell nuclei from breast-mass samples. I used only `mean radius` and `mean texture`. The target was recoded so that 1 = malignant and 0 = benign.
 
-The data were split into 341 training observations, 114 validation observations, and 114 test observations. Stratification preserved approximately the same benign/malignant proportions across all three splits. I also verified that there was no overlap among the training, validation, and test indices.
+The dataset contained 569 observations: 357 benign and 212 malignant, with no missing values in the selected features. The split produced 341 training, 114 validation, and 114 test observations. Stratification preserved similar class proportions, the three partitions had no overlap, and together they covered all rows.
 
-StandardScaler was fitted only on the training features. The same fitted scaler was then used to transform the training, validation, and test data. This prevents data leakage because information from the validation and test sets does not influence the preprocessing parameters.
+`StandardScaler` was fitted only on the training features and then reused for validation and test data. This prevents leakage because validation and test information does not influence preprocessing.
 
 ## 3. NumPy Logistic Regression Training
 
-I implemented binary logistic regression from scratch using NumPy. The model included an intercept and two standardized features. All three coefficients were initialized to zero. I used full-batch gradient descent with a learning rate of 0.1 for 20,000 epochs and binary cross-entropy loss.
+I implemented logistic regression from scratch using NumPy with an intercept, two standardized features, full-batch gradient descent, a learning rate of 0.1, and 20,000 epochs. All coefficients were initialized to zero.
 
-The initial training loss was 0.6931. After training, the final loss decreased to approximately 0.2468 and then leveled off, indicating convergence. The learned coefficients were:
+Training loss decreased from 0.6931 to approximately 0.2468 and then leveled off, indicating convergence.
 
 | Coefficient | NumPy | scikit-learn |
 |---|---:|---:|
@@ -33,28 +35,30 @@ The initial training loss was 0.6931. After training, the final loss decreased t
 | Mean radius | 3.656794 | 3.656794 |
 | Mean texture | 1.009872 | 1.009872 |
 
-The positive coefficients indicate that larger standardized values of mean radius or mean texture are associated with higher log-odds of malignancy, holding the other feature constant. These coefficients describe associations rather than causal effects, and they do not represent a constant change in probability.
+Minimizing binary cross-entropy is equivalent to minimizing negative log-likelihood, so training seeks coefficients that make the observed class labels more likely. Because mean radius was standardized using the training data, its coefficient of 3.6568 means that a one-training-standard-deviation increase in mean radius is associated with a 3.6568 increase in the log-odds of malignancy, holding mean texture fixed. This is not a constant probability change and does not imply causation.
 
 ## 4. Comparison with scikit-learn and Baseline
 
-The NumPy coefficients were almost identical to those produced by scikit-learn LogisticRegression. The mean absolute difference between the two models' validation probabilities was approximately \(1.19 \times 10^{-10}\), providing strong evidence that the NumPy implementation was working correctly.
+The NumPy coefficients were almost identical to the scikit-learn coefficients. The mean absolute difference between their validation probabilities was approximately \(1.19 \times 10^{-10}\), supporting the correctness of the NumPy implementation.
 
-The DummyClassifier baseline learned only the training class proportions. At a threshold of 0.50, it predicted every validation observation as benign. Its validation accuracy was approximately 0.623, but malignant recall and F1 were both 0. This demonstrates why accuracy alone can be misleading: the baseline classified the majority class reasonably often but failed to identify any malignant cases.
+The `DummyClassifier` baseline predicted every validation case as benign at threshold 0.50. Its accuracy was about 0.623, but recall and F1 for malignant cases were both 0. Its confusion counts were TN = 71, FP = 0, FN = 43, and TP = 0. In plain language, it correctly labeled all 71 benign cases but missed all 43 malignant cases. Because it predicted no positive cases, `zero_division=0` reports precision as 0. This shows why accuracy alone can be misleading.
 
 ## 5. Threshold Selection and Final Evaluation
 
-Using NumPy validation probabilities, I evaluated thresholds from 0.20 through 0.80. The highest validation F1 score was 0.8312 at a threshold of 0.60, so 0.60 was selected and frozen before test evaluation.
+Using NumPy validation probabilities, I evaluated thresholds from 0.20 to 0.80. The highest validation F1 was 0.8312 at threshold 0.60, so 0.60 was selected and frozen before test evaluation.
 
-On validation data, changing the threshold from 0.50 to 0.60 reduced false positives from 6 to 2 and increased precision from 0.8500 to 0.9412. However, false negatives increased from 9 to 11 and recall decreased from 0.7907 to 0.7442. The resulting F1 increased from 0.8193 to 0.8312.
+On validation data, changing the threshold from 0.50 to 0.60 reduced false positives from 6 to 2 and increased precision from 0.8500 to 0.9412. However, false negatives increased from 9 to 11, recall decreased from 0.7907 to 0.7442, and F1 increased from 0.8193 to 0.8312.
 
-On the test set, the selected threshold did not improve F1. At 0.50, the NumPy model had 4 false positives, 11 false negatives, precision of 0.8857, recall of 0.7381, and F1 of 0.8052. At 0.60, false positives decreased to 3, but false negatives increased to 14. Precision increased to 0.9032, while recall decreased to 0.6667 and F1 decreased to 0.7671. I did not change the threshold after observing the test results. Log loss remained 0.2557 for both thresholds because threshold changes affect class decisions, not the underlying predicted probabilities.
+On the test set, the selected threshold did not improve F1. At 0.50, precision was 0.8857, recall was 0.7381, and F1 was 0.8052. At 0.60, precision increased to 0.9032, but recall fell to 0.6667 and F1 fell to 0.7671. I did not change the threshold after seeing the test results. Log loss remained 0.2557 because threshold changes affect class labels, not the underlying probabilities.
 
 ## 6. Limitations and Clinical Caution
 
-This model is an educational exercise and should not be used for clinical decision-making. First, only two features were included, so other potentially important diagnostic information was excluded. Second, performance on this dataset may not generalize to all real-world patient populations. Third, F1 was used because it was the required threshold-selection rule for this assignment, but it does not directly represent the real clinical consequences of false negatives and false positives. In a real cancer-screening setting, missing a malignant case may carry a very different cost from generating a false alarm.
+This model is an educational exercise, not a clinical decision tool. It uses only two features, so important diagnostic information may be excluded, and results from this historical dataset may not generalize to other patient populations. In addition, F1 was required for threshold selection but does not represent the real clinical costs of different errors. Missing a malignant case may have much more serious consequences than generating a false positive.
 
 ## Research Process
 
-During implementation, I first verified the selected features, missing values, target coding, split sizes, class proportions, and absence of overlap between splits. I then confirmed that the standardized training features had means near zero and standard deviations near one. Before full training, I tested the sigmoid function at \(z=0\) and confirmed that it returned 0.5.
+I first verified feature selection, target coding, missing values, split sizes, class counts, class proportions, row coverage, and absence of overlap. I also confirmed that standardized training features had means near zero and standard deviations near one.
 
-I also encountered an environment issue because scikit-learn was not initially installed. After installing the required package, I continued the implementation. To validate the NumPy gradient descent code, I compared its coefficients and validation probabilities with scikit-learn. Their extremely small differences provided evidence that the implementation was correct.
+Before full training, I tested the sigmoid function at \(z=0\) and confirmed that it returned 0.5. I encountered an environment issue because scikit-learn was not initially installed, so I installed the required package and reran the project.
+
+To validate the NumPy implementation, I compared its learned coefficients and validation probabilities with the scikit-learn reference model. Their extremely small differences provided evidence that the implementation and preprocessing pipeline were working correctly.
