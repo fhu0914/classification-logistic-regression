@@ -191,6 +191,7 @@ The full script runs in a few seconds on my Windows machine.
 
 A successful run should print:
 
+- Part 1 manual case table (cases A–D)
 - selected feature names
 - missing-value counts
 - class counts and split sizes

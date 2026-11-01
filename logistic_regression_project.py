@@ -167,7 +167,10 @@ for epoch in range(epochs):
     loss = binary_cross_entropy_loss(z_updated, y_train)
     loss_history.append(loss)
 print("Final loss:", loss_history[-1])
-print("Learned beta:", beta)
+print("Learned coefficients (standardized units):")
+print(f"  beta_0 (intercept):   {beta[0]:.6f}")
+print(f"  beta_1 (mean radius): {beta[1]:.6f}")
+print(f"  beta_2 (mean texture): {beta[2]:.6f}")
 epochs_axis = np.arange(len(loss_history))
 
 plt.figure()
