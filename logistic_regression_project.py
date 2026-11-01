@@ -20,8 +20,51 @@ from sklearn.metrics import (
 ROOT = Path(__file__).resolve().parent
 REPORTS = ROOT / "reports"
 REPORTS.mkdir(exist_ok=True)
+
 pd.set_option("display.max_columns", None)
 pd.set_option("display.width", 200)
+# ============================================================
+# Part 1: Connect the equation to a prediction
+# ============================================================
+
+part1_cases = [
+    ("A", -1.0, 0.8, 2.0, 0.50),
+    ("B", -1.0, 0.8, 2.0, 0.70),
+    ("C", -1.0, -0.8, 2.0, 0.50),
+    ("D", 1.0, 0.0, 2.0, 0.50),
+]
+
+
+print("Case   z       Probability   Threshold   Predicted Class")
+
+for case, beta_0, beta_1, x, threshold in part1_cases:
+    z = beta_0 + beta_1 * x
+    p = 1 / (1 + np.exp(-z))
+    predicted_class = int(p >= threshold)
+
+    print(
+        f"{case:<6}"
+        f"{z:<8.1f}"
+        f"{p:<14.4f}"
+        f"{threshold:<12.2f}"
+        f"{predicted_class}"
+    )
+
+print("\nCase A calculation:")
+print("z = -1.0 + 0.8(2.0) = 0.6")
+print("p = 1 / (1 + exp(-0.6)) = 0.6457")
+print("Because 0.6457 >= 0.50, the predicted class is 1.")
+
+print("\nPart 1 interpretation:")
+print("A vs B: the probability stays the same, but the threshold changes the class.")
+print("C: reversing the coefficient reverses the direction of the relationship.")
+print("D: beta_1 = 0, so the probability is constant for every x.")
+print("These coefficients are manually chosen; this section does not train a model.")
+
+
+# ============================================================
+# Part 2: Prepare a leakage-free experiment
+# ============================================================
 data = load_breast_cancer()
 
 df = pd.DataFrame(data.data, columns=data.feature_names)
@@ -86,6 +129,9 @@ X_val_scaled = scaler.transform(X_val)
 X_test_scaled = scaler.transform(X_test)
 print("\nScaled training mean:", X_train_scaled.mean(axis=0))
 print("Scaled training std:", X_train_scaled.std(axis=0))
+# ============================================================
+# Part 3: Implement NumPy logistic regression
+# ============================================================
 X_train_aug = np.column_stack([
     np.ones(len(X_train_scaled)),
     X_train_scaled
@@ -136,6 +182,9 @@ plt.savefig(REPORTS / "training_loss.png", dpi=150)
 plt.close()
 
 print("Saved training loss plot to:", REPORTS / "training_loss.png")
+# ============================================================
+# Part 4: Compare training implementations and a baseline
+# ============================================================
 sk_model = LogisticRegression(
     C=np.inf,
     solver="lbfgs",
@@ -208,6 +257,9 @@ baseline_val_results = evaluate_model(
 
 print("\nBaseline validation results:")
 print(baseline_val_results)
+# ============================================================
+# Part 5: Select a threshold, then evaluate
+# ============================================================
 thresholds = [0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80]
 
 threshold_rows = []
@@ -284,7 +336,7 @@ def add_result(split_name, model_name, policy_name, threshold, y_true, probabili
         "f1": results["f1"],
         "log_loss": results["log_loss"]
     })
-    # Validation
+# Validation
 add_result("validation", "baseline", "default", 0.50,
            y_val, baseline_val_prob)
 
@@ -316,6 +368,9 @@ add_result("test", "sklearn", "default", 0.50,
 
 add_result("test", "sklearn", "selected", selected_threshold,
            y_test, sklearn_test_prob)
+# ============================================================
+# Part 6: Export results and explain them
+# ============================================================
 assignment_results = pd.DataFrame(assignment_rows)
 
 print("\nAssignment results:")
